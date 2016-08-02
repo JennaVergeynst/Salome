@@ -55,20 +55,21 @@ L_box1 = 5.2
 L_box2 = 14.30
 L_box3 = 81.075
 
-# height of each part
-height_box1 = 4.65 #triangle
-height_box2 = 7
-height_box3 = 7
+# depth (z-co) of each part
+height_box1 = -4.65 #triangle
+height_box2 = -7
+height_box3 = -7
 
 # considered lenght of the upstream channel part
 L_channel = 100
 
-# y (depth) coordinates of the intersecting horizontal planes
-upper_DV = 0.75
-middle_NS_MS = 1.39
-lower_all = 4.35
+# z (depth) coordinates of the intersecting horizontal planes
+upper_DV = -0.75
+middle_NS_MS = -1.39
+lower_all = -4.35
+sluice_bottom = -5
 # another horizontal plane needed to intersect at the point where the angle of the RB changes
-triangle_cut = 4.65
+triangle_cut = -4.65
 
 # x-coordinates of vertical planes intersecting for the inlet openings and sluice door
 # NS (inlet raster - sluice - inlet raster)
@@ -95,55 +96,94 @@ x14 = x13 + 4.40
 ##---------------##
 print ("Geometry construction ...")
 
+# make the workingplane of sketcher: the OZX plane (= 3)
+XZ_plane = geompy.MakeFaceHW(100, 500, 3)
+
 # generation of front view NS and MS
 # MakeSketcher creates the edges, MakeFace fills them to a face
 # the origin is on the right bank of the channel
 
-part1 = geompy.MakeSketcher("Sketcher:F 0 0:TT "+ str(L_box1) + " 0:TT " + str(L_box1) + " " + str(height_box1) + ":TT 0 0")
+part1 = geompy.MakeSketcherOnPlane("Sketcher:F 0 0:TT 0 "+ str(L_box1) + ":TT " + str(height_box1)+ " " + str(L_box1)  + ":TT 0 0", XZ_plane)
 part1_2D = geompy.MakeFace(part1, 1)
-part2= geompy.MakeSketcher("Sketcher:F "+ str(L_box1) + " 0:TT "+str(L_box1) + " " + str(height_box1) + ":TT " + str(L_box2) + " " + str(height_box2) + ":TT " + str(L_box2) + " 0:TT " + str(L_box1) + " 0")
+part2= geompy.MakeSketcherOnPlane("Sketcher:F 0 "+ str(L_box1) + " :TT "+ str(height_box1) + " " +str(L_box1) + ":TT "  + str(height_box2) + " " + str(L_box2)+ ":TT 0 " + str(L_box2) + ":TT 0 " + str(L_box1), XZ_plane)
 part2_2D = geompy.MakeFace(part2, 1)
-part3 = geompy.MakeSketcher("Sketcher:F "+ str(L_box2) + " 0:TT "+str(L_box2) + " " + str(height_box3) + ":TT " + str(L_box3) + " " + str(height_box3) + ":TT " + str(L_box3) + " 0:TT " + str(L_box2) + " 0")
+part3 = geompy.MakeSketcherOnPlane("Sketcher:F 0 "+ str(L_box2) + " :TT "+ str(height_box3) + " " +str(L_box2) + ":TT " + str(height_box3) + " " + str(L_box3) + ":TT 0 " + str(L_box3) + ":TT 0 " + str(L_box2), XZ_plane)
 part3_2D = geompy.MakeFace(part3, 1)
 
 # add all faces together (via partition, but nothing is cut out here)
-all2D = geompy.MakePartition([part1_2D,part2_2D,part3_2D])
+all2D = geompy.MakeCompound([part1_2D,part2_2D,part3_2D])
 all2D = geompy.RemoveExtraEdges(all2D, True)
 
+
+# create vectors along the axes
+Vx = geompy.MakeVectorDXDYDZ(1, 0, 0)
+Vy = geompy.MakeVectorDXDYDZ(0, 1, 0)
+Vz = geompy.MakeVectorDXDYDZ(0, 0, 1)
+
+# rotate all2D 180 around z-axis
+all2D = geompy.MakeRotation(all2D, Vz, math.pi)
 geompy.addToStudy(all2D ,"all2D")
 
-
-# create 2 points defining a vector in upstream direction (100 m lenght considered)
-p1 = geompy.MakeVertex( 0., 0., 0.)
-p2 = geompy.MakeVertex( 0., 0., L_channel)
-
 # extrude the front view over the lenght of the study site
-all3D = geompy.MakePrism(all2D, p1, p2)
-geompy.addToStudy(all3D ,"all3D")
+all3D = geompy.MakePrismVecH(all2D, Vy, -L_channel)
 
 # intersect all horizontally by a plane to create inlet openings
-normal_vec = geompy.MakeVector(p1, geompy.MakeVertex(0, 1, 0))
-upper_DV_intersect = geompy.MakePlane(geompy.MakeVertex(0, upper_DV, 0), normal_vec, 200)
-middle_intersect = geompy.MakePlane(geompy.MakeVertex(0, middle_NS_MS, 0), normal_vec, 200)
-lower_intersect = geompy.MakePlane(geompy.MakeVertex(0, lower_all, 0), normal_vec, 200)
-all3D = geompy.MakePartition([all3D], [upper_DV_intersect, middle_intersect, lower_intersect])
-
-
+def hor_planes(zco):
+	return geompy.MakePlane(geompy.MakeVertex(0, 0, zco), Vy, 200)
 	
+upper_DV_intersect = hor_planes(upper_DV)
+middle_intersect = hor_planes(middle_NS_MS)
+lower_intersect = hor_planes(lower_all)
+sluice_bottom_intersect = hor_planes(sluice_bottom)
+triangle_intersect = hor_planes(triangle_cut)
+all3D = geompy.MakePartition([all3D], [upper_DV_intersect, middle_intersect, lower_intersect, sluice_bottom_intersect, triangle_intersect])
 
 # intersect all vertically by a plane to create inlet openings
-normal_vec2 = geompy.MakeVector(p1, geompy.MakeVertex(1, 0, 0))
 
 def vert_planes(xco):
-	plane = geompy.MakePlane(geompy.MakeVertex(xco, 0, 0), normal_vec2, 200)
+	plane = geompy.MakePlane(geompy.MakeVertex(xco, 0, 0), Vx, 200)
 	return plane
 intersect_list = []
-x_list = [x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14]
+x_list = [-x1, -x2, -x3, -x4, -x5, -x6, -x7, -x8, -x9, -x10, -x11, -x12, -x13, -x14]
 for x in x_list:
 	intersect_list.append(vert_planes(x))
 
 all3D = geompy.MakePartition([all3D], intersect_list)
-
-print
 geompy.addToStudy(all3D ,"all3D")
 
+# add simplified sluice forms
+NS = geompy.MakeBoxTwoPnt(geompy.MakeVertex(-x3, 0, 0), geompy.MakeVertex(-x4, 11.70, sluice_bottom))
+MS = geompy.MakeBoxTwoPnt(geompy.MakeVertex(-x9, 0, 0), geompy.MakeVertex(-x10, 11.70, sluice_bottom))
+
+compound = geompy.MakeCompound([all3D, NS, MS])
+compound = geompy.MakeGlueFaces(compound,10**-7,1)
+geompy.addToStudy(compound, "compound")
+
+#
+
+# find faces to extrude in direction of lock doors (combination of 3 faces)
+opening_NS_1 = geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vz, geompy.MakeVertex((x4-x3)/2, 0, 0), GEOM.ST_ON)
+opening_NS_2 = geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vz, geompy.MakeVertex((x4-x3)/2, upper_DV+0.1, 0), GEOM.ST_ON)
+opening_NS_3 = geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vz, geompy.MakeVertex((x4-x3)/2, middle_NS_MS+0.1, 0), GEOM.ST_ON)
+
+#opening_NS_1 = geompy.GetFaceByPoint(compound, geompy.MakeVertex(x3, 0, 0), geompy.MakeVertex(x3, 5, 0), geompy.MakeVertex(x4, 0, 0), geompy.MakeVertex(x4, 5 0))
+#print(opening_NS_1)
+
+# create a group of shapes lying on a box
+#group_NS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+# add the shapes to the group
+#geompy.UnionList(group_NS, opening_NS_2)
+#geompy.UnionList(group_NS, [opening_NS_1, opening_NS_2, opening_NS_3])
+#geompy.addToStudyInFather(all3D, group_NS, "group_NS")
+
+#check if the generated shape is valid
+print("Checking whether the created shape is valid")
+IsValid = geompy.CheckShape(all3D)
+if IsValid == 0:
+    raise(RuntimeError, "Invalid geometry created")
+else:
+    print("Hurray! Created geometry is valid!")
+
+
+
+	
