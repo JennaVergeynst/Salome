@@ -50,27 +50,6 @@ def PrintMeshInfo(theMesh):
 ##-----------##
 print ("Reading in constants ...")
 
-# left x coordinate of each part:
-L_box1 = 5.2
-L_box2 = 14.30
-L_box3 = 81.075
-
-# depth (z-co) of each part
-height_box1 = -4.65 #triangle
-height_box2 = -7
-height_box3 = -7
-
-# considered lenght of the upstream channel part
-L_channel = 100
-
-# z (depth) coordinates of the intersecting horizontal planes
-upper_DV = -0.75 # upper level of DV intake
-middle_NS_MS = -1.39 # upper level of NS and MS intake
-lower_all = -4.35 # lower level of all intakes
-sluice_bottom = -5
-# another horizontal plane needed to intersect at the point where the angle of the RB changes
-triangle_cut = -4.65
-
 # x-coordinates of vertical planes intersecting for the inlet openings and sluice door
 # NS (inlet raster - sluice - inlet raster)
 x1 = -8.475
@@ -86,9 +65,48 @@ x9 = -16 - 16 - 15.075
 x10 = x9 - 16
 x11 = x10 - 3 
 x12 = x11 - 3.60
-# DV (RB inlet raster) !!!dimensions probably not correct!!!
-x13 = x12 - 3.10 
-x14 = x13 - 4.40
+# DV
+x16 = x10 - 39
+x14 = x16 + 4 #protruding corner
+x15 = x14 - 0.60
+x17 = x15 - 2*4.90
+x18 = x17 - 3.60
+x19 = x18 - 24
+x20 = x19 - 3.60
+x21 = x20 - 2*4.90
+x22 = x21 - 0.60
+# tap
+x13 = x16 + 11
+
+# divide the front view in 4 parts: 2 triangles + 1 rectangle of MS and NS, 1 rectangle for protruding DV
+
+# left x coordinate of each part:
+L_box1 = -6.5
+L_box2 = -16.4
+L_box3 = x16
+L_box4 = x22
+
+# depth (z-co) of each part
+height_box1 = -4.65 #triangle
+height_box2 = -7
+height_box3 = -7
+
+# considered lenght of the upstream channel part
+L_channel = 100
+
+# z (depth) coordinates of the intersecting horizontal planes
+z_DV_up = -0.75
+z_DV_down = 
+
+z_MS_NS_up = -1.39
+
+z_MS_NS_down = -4.35
+
+z_MS_NS_up = -1.39 # upper level of NS and MS intake
+lower_all = -4.35 # lower level of all intakes
+sluice_bottom = -5
+# another horizontal plane needed to intersect at the point where the angle of the RB changes
+triangle_cut = -4.65
 
 
 ##---------------##
@@ -131,12 +149,12 @@ all3D = geompy.MakePrismVecH(all2D, Vy, -L_channel)
 def hor_planes(zco):
 	return geompy.MakePlane(geompy.MakeVertex(0, 0, zco), Vz, 200)
 	
-upper_DV_intersect = hor_planes(upper_DV)
-middle_intersect = hor_planes(middle_NS_MS)
+z_DV_up_intersect = hor_planes(z_DV_up)
+middle_intersect = hor_planes(z_MS_NS_up)
 lower_intersect = hor_planes(lower_all)
 sluice_bottom_intersect = hor_planes(sluice_bottom)
 triangle_intersect = hor_planes(triangle_cut)
-all3D = geompy.MakePartition([all3D], [upper_DV_intersect, middle_intersect, lower_intersect, sluice_bottom_intersect, triangle_intersect])
+all3D = geompy.MakePartition([all3D], [z_DV_up_intersect, middle_intersect, lower_intersect, sluice_bottom_intersect, triangle_intersect])
 geompy.addToStudy(all3D ,"all3D")
 
 
@@ -169,11 +187,11 @@ geompy.addToStudy(compound, "compound")
 # locate faces to determine inlets and outlets
 
 # faces below are the outlet faces (intake of the sluice filling)
-intake_NS_RB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x1+0.5, 0, middle_NS_MS-0.5))
+intake_NS_RB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x1+0.5, 0, z_MS_NS_up-0.5))
 geompy.addToStudy(intake_NS_RB, "intake_NS_RB")
-intake_NS_LB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x5+0.5, 0, middle_NS_MS-0.5))
-intake_MS_RB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x7+0.5, 0, middle_NS_MS-0.5))
-intake_MS_LB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x11+0.5, 0, middle_NS_MS-0.5))
+intake_NS_LB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x5+0.5, 0, z_MS_NS_up-0.5))
+intake_MS_RB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x7+0.5, 0, z_MS_NS_up-0.5))
+intake_MS_LB = geompy.GetFaceNearPoint(compound, geompy.MakeVertex(x11+0.5, 0, z_MS_NS_up-0.5))
 
 
 
