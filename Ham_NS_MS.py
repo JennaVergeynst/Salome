@@ -99,12 +99,12 @@ L_channel = 100
 
 # z (depth) coordinates of the intersecting horizontal planes
 z_DV_up = -2.13
-z_DV_down = -7.13
+z_DV_down = -7.13 # = bottom of DV sluice
 
 z_MS_NS_up = -1.39
 z_MS_NS_down = -4.35
 
-sluice_bottom = -5
+z_small_sluices = -5
 
 # some other y-coordinates
 y_NS_RB = -9.6
@@ -202,11 +202,12 @@ geompy.addToStudy(shape3D, "shape3D")
 def hor_planes(zco):
 	return geompy.MakePlane(geompy.MakeVertex(0, 0, zco), Vz, 1000)
 	
-z_DV_up_intersect = hor_planes(z_DV_up)
-middle_intersect = hor_planes(z_MS_NS_up)
-lower_intersect = hor_planes(z_MS_NS_down)
-sluice_bottom_intersect = hor_planes(sluice_bottom)
-all3D = geompy.MakePartition([shape3D], [z_DV_up_intersect, middle_intersect, lower_intersect, sluice_bottom_intersect])
+DV_up_intersect = hor_planes(z_DV_up)
+DV_down_intersect = hor_planes(z_DV_down) #this also intersects bottom of DV sluice
+MS_NS_up_intersect = hor_planes(z_MS_NS_up)
+MS_NS_down_intersect = hor_planes(z_MS_NS_down)
+small_sluices_intersect = hor_planes(z_small_sluices)
+all3D = geompy.MakePartition([shape3D], [DV_up_intersect, DV_down_intersect, MS_NS_up_intersect, MS_NS_down_intersect, small_sluices_intersect])
 geompy.addToStudy(all3D ,"all3D")
 
 # intersect all vertically by a plane to create inlet openings
@@ -220,34 +221,8 @@ for y in y_list:
 	intersect_list.append(vert_planes(y))
 
 all3D = geompy.MakePartition([all3D], intersect_list)
+all3D = geompy.RemoveExtraEdges(all3D, True)
 geompy.addToStudy(all3D ,"all3D")
-
-# 6. locate faces to determine inlets and outlets (see old method)
-
-
-
-
-
-
-
-###------OLD METHODOLOGY-------
-"""
-
-
-
-
-#
-
-# locate faces to determine inlets and outlets
-
-# faces below are the outlet faces (intake of the sluice filling)
-intake_NS_RB = geompy.GetFaceNearPoint(compound, geompy.MakeVertey(y1+0.5, 0, z_MS_NS_up-0.5))
-geompy.addToStudy(intake_NS_RB, "intake_NS_RB")
-intake_NS_LB = geompy.GetFaceNearPoint(compound, geompy.MakeVertey(y5+0.5, 0, z_MS_NS_up-0.5))
-intake_MS_RB = geompy.GetFaceNearPoint(compound, geompy.MakeVertey(y7+0.5, 0, z_MS_NS_up-0.5))
-intake_MS_LB = geompy.GetFaceNearPoint(compound, geompy.MakeVertey(y11+0.5, 0, z_MS_NS_up-0.5))
-
-
 
 #check if the generated shape is valid
 print("Checking whether the created shape is valid")
@@ -257,6 +232,27 @@ if IsValid == 0:
 else:
     print("Hurray! Created geometry is valid!")
 
-"""
+# 6. locate faces to determine inlets and outlets
+
+# outlet faces (intakes of the sluice filling)
+intake_NS_RB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_up-0.5))
+geompy.addToStudy(intake_NS_RB, "intake_NS_RB")
+intake_NS_LB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_up-0.5))
+geompy.addToStudy(intake_NS_LB, "intake_NS_LB")
+intake_MS_RB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_up-0.5))
+geompy.addToStudy(intake_MS_RB, "intake_MS_RB")
+intake_MS_LB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_up-0.5))
+geompy.addToStudy(intake_MS_LB, "intake_MS_LB")
+intake_DV_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_up-0.5))
+intake_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
+intake_DV_RB = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
+geompy.UnionList(intake_DV_RB, [intake_DV_RB_1, intake_DV_RB_2]) # put in the group: 2 parts of the intake
+geompy.addToStudy(intake_DV_RB, "intake_DV_RB")
+intake_DV_LB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_up-0.5))
+geompy.addToStudy(intake_DV_LB, "intake_DV_LB")
+
+
+
+
 
 	
