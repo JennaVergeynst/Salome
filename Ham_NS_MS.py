@@ -121,6 +121,10 @@ x_MS_NS_cove = -13.7 # cove = inham
 x_DV_extr = 71.65
 x_DV_cove1 = x_DV_extr - 4.7
 x_DV_cove2 = x_DV_cove1 - 9.4
+x1_sidechannel = x_DV_extr + 43.60
+x2_sidechannel = x1_sidechannel + 13.7
+
+
 ##---------------##
 ## Geometry ##
 ##---------------##
@@ -172,7 +176,9 @@ p37 = geompy.MakeVertex(x_DV_cove1, y_DV_LB, 0)
 p38 = geompy.MakeVertex(x_DV_extr, y_DV_LB, 0)
 
 p39 = geompy.MakeVertex(x_DV_extr, y_LB, 0)
+p39_low = geompy.MakeVertex(x_DV_extr, y_LB, -5)
 p44 = geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, 0)
+p44_low = geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -4)
 p45 = geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB + 135, 0)
 p46 = geompy.MakeVertex(120, y_DV_LB + 135, 0) #120 AANPASSEN NR WERKELIJKE X!!!
 
@@ -189,11 +195,11 @@ geompy.addToStudy(groundface, "groundface")
 # 4. extend the face in z-direction (depth)
 
 # create vectors along the ayes
-Vy = geompy.MakeVectorDXDYDZ(1, 0, 0)
+Vx = geompy.MakeVectorDXDYDZ(1, 0, 0)
 Vy = geompy.MakeVectorDXDYDZ(0, 1, 0)
 Vz = geompy.MakeVectorDXDYDZ(0, 0, 1)
 
-shape3D = geompy.MakePrismVecH(groundface, Vz, -7)
+shape3D = geompy.MakePrismVecH(groundface, Vz, -7.13) # for now: take bottom of DV sluice as lowest point
 geompy.addToStudy(shape3D, "shape3D")
 
 # 5. cut the 3D-shape by use of horizontal and vertical planes
@@ -268,8 +274,26 @@ intake_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group
 geompy.UnionList(intake_DV, [intake_DV_RB_1, intake_DV_RB_2, intake_DV_RB_3, intake_DV_RB_4, intake_DV_RB_5, intake_DV_RB_6, intake_DV_LB_1, intake_DV_LB_2, intake_DV_LB_3]) # put in the group: 2 parts of the intake
 geompy.addToStudy(intake_DV, "intake_DV")
 
+# intake of the turbine side channel
+
+# inlet face: upstream part
+inlet_upstream = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) 
+geompy.UnionList(inlet_upstream, geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vx, geompy.MakeVertex(x_DV_extr+218.875, -0.05, -0.05), GEOM.ST_ON))
+geompy.addToStudy(inlet_upstream, "inlet_upstream")
+
+#wall_left = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) 
+#geompy.UnionList(wall_left, geompy.GetShapesOnQuadrangle(all3D, geompy.ShapeType["FACE"], p39, p44, geompy.MakeVertex(x_DV_extr+100, y_LB, -5), geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -5), GEOM.ST_ON))
+wall_left = geompy.MakePlaneThreePnt(p39, p44, p39_low, 400)
+geompy.addToStudy(wall_left, "wall_left")
+
+# x/z coordinates on wall_left plane:
+xx40 = 44 #p40
+xx43 = xx40+13.85 #p44
+zzhigh = 0.3
+zzlow = 4.46
+
+intake_sidechannel = geompy.MakeSketcherOnPlane("Sketcher:F "+str(xx40)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzhigh)+" :WF", wall_left)
+geompy.addToStudy(intake_sidechannel, "intake_sidechannel")
+#quaIn = geompy.MakeSketcher("Sketcher:F -" + str_rad_2 + " -" + str_rad_2 + ":TT -" + str_rad_2 + " " + str_rad_2 + ":TT " + str_rad_2 + " " + str_rad_2 + ":TT " + str_rad_2 + " -" + str_rad_2 + ":WF")
 
 
-
-
-	
