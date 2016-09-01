@@ -240,60 +240,79 @@ else:
 
 # 6. locate faces to determine inlets and outlets
 
-# outlet faces (intakes of the sluice filling): all intakes are split by horizontal intersects, so have to be grouped again
+# outlet faces (outlets of the sluice filling): all outlets are split by horizontal intersects, so have to be grouped again
 
-intake_NS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_up-0.5))
-intake_NS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_down+0.5))
-intake_NS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_up-0.5))
-intake_NS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_down+0.5))
-intakes_NS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-geompy.UnionList(intakes_NS, [intake_NS_RB_1, intake_NS_RB_2, intake_NS_LB_1, intake_NS_LB_2])
-geompy.addToStudy(intakes_NS, "intakes_NS")
+outlet_NS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_up-0.5))
+outlet_NS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_down+0.5))
+outlet_NS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_up-0.5))
+outlet_NS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_down+0.5))
+outlets_NS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+geompy.UnionList(outlets_NS, [outlet_NS_RB_1, outlet_NS_RB_2, outlet_NS_LB_1, outlet_NS_LB_2])
+geompy.addToStudyInFather(all3D, outlets_NS, "outlets_NS")
 
-intake_MS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_up-0.5))
-intake_MS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_down+0.5))
-intake_MS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_up-0.5))
-intake_MS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_down+0.5))
-intakes_MS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-geompy.UnionList(intakes_MS, [intake_MS_RB_1, intake_MS_RB_2, intake_MS_LB_1, intake_MS_LB_2])
-geompy.addToStudy(intakes_MS, "intakes_MS")
+outlet_MS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_up-0.5))
+outlet_MS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_down+0.5))
+outlet_MS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_up-0.5))
+outlet_MS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_down+0.5))
+outlets_MS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+geompy.UnionList(outlets_MS, [outlet_MS_RB_1, outlet_MS_RB_2, outlet_MS_LB_1, outlet_MS_LB_2])
+geompy.addToStudyInFather(all3D, outlets_MS, "outlets_MS")
 
-intake_DV_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_up-0.5))
-intake_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_small_sluices+0.05))
-intake_DV_RB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_down+0.5))
+outlet_DV_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_up-0.5))
+outlet_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_small_sluices+0.05))
+outlet_DV_RB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_down+0.5))
 
-intake_DV_RB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
-intake_DV_RB_5 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_small_sluices+0.05))
-intake_DV_RB_6 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_down+0.5))
+outlet_DV_RB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
+outlet_DV_RB_5 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_small_sluices+0.05))
+outlet_DV_RB_6 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_down+0.5))
 
-intake_DV_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_up-0.5))
-intake_DV_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_small_sluices+0.05))
-intake_DV_LB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_down+0.5))
+outlet_DV_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_up-0.5))
+outlet_DV_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_small_sluices+0.05))
+outlet_DV_LB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_down+0.5))
 
-intake_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
-geompy.UnionList(intake_DV, [intake_DV_RB_1, intake_DV_RB_2, intake_DV_RB_3, intake_DV_RB_4, intake_DV_RB_5, intake_DV_RB_6, intake_DV_LB_1, intake_DV_LB_2, intake_DV_LB_3]) # put in the group: 2 parts of the intake
-geompy.addToStudy(intake_DV, "intake_DV")
+outlet_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
+geompy.UnionList(outlet_DV, [outlet_DV_RB_1, outlet_DV_RB_2, outlet_DV_RB_3, outlet_DV_RB_4, outlet_DV_RB_5, outlet_DV_RB_6, outlet_DV_LB_1, outlet_DV_LB_2, outlet_DV_LB_3]) # put in the group: 2 parts of the outlet
+geompy.addToStudyInFather(all3D, outlet_DV, "outlet_DV")
 
-# intake of the turbine side channel
+# outlet of the turbine side channel
 
 # inlet face: upstream part
 inlet_upstream = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) 
 geompy.UnionList(inlet_upstream, geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vx, geompy.MakeVertex(x_DV_extr+218.875, -0.05, -0.05), GEOM.ST_ON))
-geompy.addToStudy(inlet_upstream, "inlet_upstream")
+geompy.addToStudyInFather(all3D, inlet_upstream, "inlet_upstream")
 
 #wall_left = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) 
 #geompy.UnionList(wall_left, geompy.GetShapesOnQuadrangle(all3D, geompy.ShapeType["FACE"], p39, p44, geompy.MakeVertex(x_DV_extr+100, y_LB, -5), geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -5), GEOM.ST_ON))
-wall_left = geompy.MakePlaneThreePnt(p39, p44, p39_low, 400)
+wall_left = geompy.MakePlaneThreePnt(p39, p44, p39_low, 500)
 geompy.addToStudy(wall_left, "wall_left")
 
 # x/z coordinates on wall_left plane:
-xx40 = 44 #p40
-xx43 = xx40+13.85 #p44
+xx40 = 44+0.45 #p40
+xx43 = xx40+12.95 #p44
 zzhigh = 0.3
 zzlow = 4.46
 
+# draw intake sidechannel (can be inlet when pumping and outlet when turbining!)
 intake_sidechannel = geompy.MakeSketcherOnPlane("Sketcher:F "+str(xx40)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzhigh)+" :WF", wall_left)
-geompy.addToStudy(intake_sidechannel, "intake_sidechannel")
-#quaIn = geompy.MakeSketcher("Sketcher:F -" + str_rad_2 + " -" + str_rad_2 + ":TT -" + str_rad_2 + " " + str_rad_2 + ":TT " + str_rad_2 + " " + str_rad_2 + ":TT " + str_rad_2 + " -" + str_rad_2 + ":WF")
+geompy.addToStudyInFather(all3D, intake_sidechannel, "outlet_sidechannel")
+
+# extrusion of the side channel: first determine the vector perpendicular on the left wall
+perp_leftwall = geompy.MakeVector(geompy.MakeVertex(x_DV_extr+4.3, y22-0.6, 0), geompy.MakeVertex(x_DV_extr, y22-31, 0))
+box_sidechannel = geompy.MakePrismVecH(intake_sidechannel, perp_leftwall, 11.7)
+geompy.addToStudy(box_sidechannel, "box_sidechannel")
 
 
+"""
+NOG TE DOEN:
+- sidechannel vroeger zetten (voor horizontaal en verticaal doorsnijden) + wanden doortrekken door study site
+- outlets afbakenen voor horizontaal doorsnijden? Blijven ze dan een geheel na doorsnijden?
+- leftwall en top aanduiden
+- meshen!
+
+"""
+
+"""
+wall_left_F = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+geompy.UnionList(wall_left_F, geompy.GetSharedShapesMulti([all3D, wall_left], geompy.ShapeType["FACE"]))
+geompy.addToStudy(wall_left_F, "wall_left_F")
+"""
