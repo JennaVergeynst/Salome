@@ -234,22 +234,39 @@ else:
 
 # 6. locate faces to determine inlets and outlets
 
-# outlet faces (intakes of the sluice filling)
-intake_NS_RB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_up-0.5))
-geompy.addToStudy(intake_NS_RB, "intake_NS_RB")
-intake_NS_LB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_up-0.5))
-geompy.addToStudy(intake_NS_LB, "intake_NS_LB")
-intake_MS_RB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_up-0.5))
-geompy.addToStudy(intake_MS_RB, "intake_MS_RB")
-intake_MS_LB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_up-0.5))
-geompy.addToStudy(intake_MS_LB, "intake_MS_LB")
+# outlet faces (intakes of the sluice filling): all intakes are split by horizontal intersects, so have to be grouped again
+
+intake_NS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_up-0.5))
+intake_NS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_MS_NS_down+0.5))
+intake_NS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_up-0.5))
+intake_NS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_down+0.5))
+intakes_NS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+geompy.UnionList(intakes_NS, [intake_NS_RB_1, intake_NS_RB_2, intake_NS_LB_1, intake_NS_LB_2])
+geompy.addToStudy(intakes_NS, "intakes_NS")
+
+intake_MS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_up-0.5))
+intake_MS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_down+0.5))
+intake_MS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_up-0.5))
+intake_MS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_down+0.5))
+intakes_MS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+geompy.UnionList(intakes_MS, [intake_MS_RB_1, intake_MS_RB_2, intake_MS_LB_1, intake_MS_LB_2])
+geompy.addToStudy(intakes_MS, "intakes_MS")
+
 intake_DV_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_up-0.5))
-intake_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
-intake_DV_RB = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
-geompy.UnionList(intake_DV_RB, [intake_DV_RB_1, intake_DV_RB_2]) # put in the group: 2 parts of the intake
-geompy.addToStudy(intake_DV_RB, "intake_DV_RB")
-intake_DV_LB = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_up-0.5))
-geompy.addToStudy(intake_DV_LB, "intake_DV_LB")
+intake_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_small_sluices+0.05))
+intake_DV_RB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_down+0.5))
+
+intake_DV_RB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
+intake_DV_RB_5 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_small_sluices+0.05))
+intake_DV_RB_6 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_down+0.5))
+
+intake_DV_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_up-0.5))
+intake_DV_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_small_sluices+0.05))
+intake_DV_LB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_down+0.5))
+
+intake_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
+geompy.UnionList(intake_DV, [intake_DV_RB_1, intake_DV_RB_2, intake_DV_RB_3, intake_DV_RB_4, intake_DV_RB_5, intake_DV_RB_6, intake_DV_LB_1, intake_DV_LB_2, intake_DV_LB_3]) # put in the group: 2 parts of the intake
+geompy.addToStudy(intake_DV, "intake_DV")
 
 
 
