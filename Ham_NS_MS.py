@@ -63,7 +63,7 @@ y7 = y6 - 2.80
 y8 = y7 - 3.60
 y9 = y3 -16 - 16
 y10 = y9 - 16
-y11 = y10 - 3 
+y11 = y10 - 3
 y12 = y11 - 3.60
 # DV
 y16 = y10 - 29
@@ -78,31 +78,15 @@ y22 = y21 - 0.60
 # tap
 y13 = y16 + 11
 
-# divide the front view in 4 parts: 2 triangles + 1 rectangle of MS and NS, 1 rectangle for protruding DV
-
-"""
-this part may be deleted
-# left y coordinate of each part:
-L_boy2 = -10.9 #skipped L_boy1: on the ground
-L_boy3 = y16
-L_boy4 = y22
-
-# depth (z-co) of each part
-height_boy1 = -4.6 #trapezium instead of triangle
-height_boy2 = -7
-height_boy3 = -7
-
-# considered lenght of the upstream channel part
-L_channel = 100
-
-"""
-
 # z (depth) coordinates of the intersecting horizontal planes
 z_DV_up = -2.13
 z_DV_down = -7.13 # = bottom of DV sluice
 
 z_MS_NS_up = -1.39
 z_MS_NS_down = -4.35
+
+z_tap_up = -0.75
+z_tap_down = z_MS_NS_down
 
 z_small_sluices = -5
 
@@ -184,7 +168,7 @@ p46 = geompy.MakeVertex(120, y_DV_LB + 135, 0) #120 AANPASSEN NR WERKELIJKE X!!!
 
 # 2. make a closed polyline
 
-poly = geompy.MakePolyline([p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, 
+poly = geompy.MakePolyline([p0, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22,
 p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38, p39, p44, p45, p46, p0])
 
 # 3. closed polyline becomes a face
@@ -194,26 +178,57 @@ geompy.addToStudy(groundface, "groundface")
 
 # 4. extend the face in z-direction (depth)
 
-# create vectors along the ayes
+# create vectors along the axes
 Vx = geompy.MakeVectorDXDYDZ(1, 0, 0)
 Vy = geompy.MakeVectorDXDYDZ(0, 1, 0)
 Vz = geompy.MakeVectorDXDYDZ(0, 0, 1)
 
 shape3D = geompy.MakePrismVecH(groundface, Vz, -7.13) # for now: take bottom of DV sluice as lowest point
+
+
+# 5. extend shape3D with piece of the side channel
+
+#wall_left = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+#geompy.UnionList(wall_left, geompy.GetShapesOnQuadrangle(all3D, geompy.ShapeType["FACE"], p39, p44, geompy.MakeVertex(x_DV_extr+100, y_LB, -5), geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -5), GEOM.ST_ON))
+wall_left = geompy.MakePlaneThreePnt(p39, p44, p39_low, 500)
+#geompy.addToStudy(wall_left, "wall_left")
+
+# x/z coordinates on wall_left plane:
+xx40 = 44+0.45 #p40
+xx43 = xx40+12.95 #p44
+zzhigh = 0.3
+zzlow = 4.46
+
+# draw intake sidechannel (can be inlet when pumping and outlet when turbining!)
+intake_sidechannel = geompy.MakeSketcherOnPlane("Sketcher:F "+str(xx40)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzhigh)+" :WF", wall_left)
+geompy.addToStudyInFather(all3D, intake_sidechannel, "outlet_sidechannel")
+
+# extrusion of the side channel: first determine the vector perpendicular on the left wall
+perp_leftwall = geompy.MakeVector(geompy.MakeVertex(x_DV_extr+4.3, y22-0.6, 0), geompy.MakeVertex(x_DV_extr, y22-31, 0))
+box_sidechannel_L = geompy.MakePrismVecH(intake_sidechannel, perp_leftwall, 11.7)
+perp_leftwall_inverse = geompy.MakeVector(geompy.MakeVertex(x_DV_extr, y22-31, 0), geompy.MakeVertex(x_DV_extr+4.3, y22-0.6, 0))
+box_sidechannel_R = geompy.MakePrismVecH(intake_sidechannel, perp_leftwall_inverse, 200) # extend also in other direction
+
+shape3D = geompy.MakeCompound([shape3D, box_sidechannel_L, box_sidechannel_R])
+shape3D = geompy.RemoveExtraEdges(shape3D, True)
 geompy.addToStudy(shape3D, "shape3D")
 
-# 5. cut the 3D-shape by use of horizontal and vertical planes
+# 6. cut the 3D-shape by use of horizontal and vertical planes
 
 # intersect all horizontally by a plane to create inlet openings
 def hor_planes(zco):
 	return geompy.MakePlane(geompy.MakeVertex(0, 0, zco), Vz, 1000)
-	
+
 DV_up_intersect = hor_planes(z_DV_up)
 DV_down_intersect = hor_planes(z_DV_down) #this also intersects bottom of DV sluice
 MS_NS_up_intersect = hor_planes(z_MS_NS_up)
 MS_NS_down_intersect = hor_planes(z_MS_NS_down)
 small_sluices_intersect = hor_planes(z_small_sluices)
-all3D = geompy.MakePartition([shape3D], [DV_up_intersect, DV_down_intersect, MS_NS_up_intersect, MS_NS_down_intersect, small_sluices_intersect])
+tap_up_intersect = hor_planes(z_tap_up)
+sidechannel_zzhigh_intersect = hor_planes(-zzhigh) # take negative depth, because zz is in other coordinate system
+sidechannel_zzlow_intersect = hor_planes(-zzlow)
+
+all3D = geompy.MakePartition([shape3D], [DV_up_intersect, DV_down_intersect, MS_NS_up_intersect, MS_NS_down_intersect, small_sluices_intersect, tap_up_intersect, sidechannel_zzhigh_intersect, sidechannel_zzlow_intersect])
 geompy.addToStudy(all3D ,"all3D")
 
 # intersect all vertically by a plane to create inlet openings
@@ -230,6 +245,9 @@ all3D = geompy.MakePartition([all3D], intersect_list)
 all3D = geompy.RemoveExtraEdges(all3D, True)
 geompy.addToStudy(all3D ,"all3D")
 
+# intersect vertically by a plane to extend the vertical walls of the side channel
+
+
 #check if the generated shape is valid
 print("Checking whether the created shape is valid")
 IsValid = geompy.CheckShape(all3D)
@@ -238,7 +256,7 @@ if IsValid == 0:
 else:
     print("Hurray! Created geometry is valid!")
 
-# 6. locate faces to determine inlets and outlets
+# 7. locate faces to determine inlets and outlets
 
 # outlet faces (outlets of the sluice filling): all outlets are split by horizontal intersects, so have to be grouped again
 
@@ -259,47 +277,31 @@ geompy.UnionList(outlets_MS, [outlet_MS_RB_1, outlet_MS_RB_2, outlet_MS_LB_1, ou
 geompy.addToStudyInFather(all3D, outlets_MS, "outlets_MS")
 
 outlet_DV_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_up-0.5))
-outlet_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_small_sluices+0.05))
-outlet_DV_RB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_down+0.5))
+outlet_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, -zzlow+0.05))
+outlet_DV_RB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_small_sluices+0.05))
+outlet_DV_RB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_down+0.5))
 
-outlet_DV_RB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
-outlet_DV_RB_5 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_small_sluices+0.05))
-outlet_DV_RB_6 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_down+0.5))
+outlet_DV_RB_5 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_up-0.5))
+outlet_DV_RB_6 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, -zzlow+0.05))
+outlet_DV_RB_7 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_small_sluices+0.05))
+outlet_DV_RB_8 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y16-0.5, z_DV_down+0.5))
 
 outlet_DV_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_up-0.5))
-outlet_DV_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_small_sluices+0.05))
-outlet_DV_LB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_down+0.5))
+outlet_DV_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, -zzlow+0.05))
+outlet_DV_LB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_small_sluices+0.05))
+outlet_DV_LB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_down+0.5))
 
 outlet_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
-geompy.UnionList(outlet_DV, [outlet_DV_RB_1, outlet_DV_RB_2, outlet_DV_RB_3, outlet_DV_RB_4, outlet_DV_RB_5, outlet_DV_RB_6, outlet_DV_LB_1, outlet_DV_LB_2, outlet_DV_LB_3]) # put in the group: 2 parts of the outlet
+geompy.UnionList(outlet_DV, [outlet_DV_RB_1, outlet_DV_RB_2, outlet_DV_RB_3, outlet_DV_RB_4, outlet_DV_RB_5, outlet_DV_RB_6, outlet_DV_RB_7, outlet_DV_RB_8, outlet_DV_LB_1, outlet_DV_LB_2, outlet_DV_LB_3, outlet_DV_LB_4]) # put in the group: 2 parts of the outlet
 geompy.addToStudyInFather(all3D, outlet_DV, "outlet_DV")
 
-# outlet of the turbine side channel
 
 # inlet face: upstream part
-inlet_upstream = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) 
+inlet_upstream = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
 geompy.UnionList(inlet_upstream, geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vx, geompy.MakeVertex(x_DV_extr+218.875, -0.05, -0.05), GEOM.ST_ON))
 geompy.addToStudyInFather(all3D, inlet_upstream, "inlet_upstream")
 
-#wall_left = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) 
-#geompy.UnionList(wall_left, geompy.GetShapesOnQuadrangle(all3D, geompy.ShapeType["FACE"], p39, p44, geompy.MakeVertex(x_DV_extr+100, y_LB, -5), geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -5), GEOM.ST_ON))
-wall_left = geompy.MakePlaneThreePnt(p39, p44, p39_low, 500)
-geompy.addToStudy(wall_left, "wall_left")
 
-# x/z coordinates on wall_left plane:
-xx40 = 44+0.45 #p40
-xx43 = xx40+12.95 #p44
-zzhigh = 0.3
-zzlow = 4.46
-
-# draw intake sidechannel (can be inlet when pumping and outlet when turbining!)
-intake_sidechannel = geompy.MakeSketcherOnPlane("Sketcher:F "+str(xx40)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzhigh)+" :WF", wall_left)
-geompy.addToStudyInFather(all3D, intake_sidechannel, "outlet_sidechannel")
-
-# extrusion of the side channel: first determine the vector perpendicular on the left wall
-perp_leftwall = geompy.MakeVector(geompy.MakeVertex(x_DV_extr+4.3, y22-0.6, 0), geompy.MakeVertex(x_DV_extr, y22-31, 0))
-box_sidechannel = geompy.MakePrismVecH(intake_sidechannel, perp_leftwall, 11.7)
-geompy.addToStudy(box_sidechannel, "box_sidechannel")
 
 
 """
