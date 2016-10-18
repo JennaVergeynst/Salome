@@ -5,10 +5,10 @@
 '''
 Notes on running this python script for salome automatically:
 in the bash run the command:
-	salome720 -t <pathToScript>
+	salome760 -t <pathToScript>
 Where -t = TUI only
 afterwards eyecute following command to kill all sleeping salome sessions
-	salome720 --killall
+	salome760 --killall
 '''
 ####----------####
 #### Preamble ####
@@ -161,6 +161,8 @@ p38 = geompy.MakeVertex(x_DV_extr, y_DV_LB, 0)
 
 p39 = geompy.MakeVertex(x_DV_extr, y_LB, 0)
 p39_low = geompy.MakeVertex(x_DV_extr, y_LB, -5)
+p40 = geompy.MakeVertex(x_DV_extr+44, y_LB - 6.23, 0)
+p43 = geompy.MakeVertex(x_DV_extr+56.83, y_LB - 8.05, 0)
 p44 = geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, 0)
 p44_low = geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -4)
 p45 = geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB + 135, 0)
@@ -188,8 +190,6 @@ shape3D = geompy.MakePrismVecH(groundface, Vz, -7.13) # for now: take bottom of 
 
 # 5. extend shape3D with piece of the side channel
 
-#wall_left = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-#geompy.UnionList(wall_left, geompy.GetShapesOnQuadrangle(all3D, geompy.ShapeType["FACE"], p39, p44, geompy.MakeVertex(x_DV_extr+100, y_LB, -5), geompy.MakeVertex(x_DV_extr+218.875, y_DV_LB - 45, -5), GEOM.ST_ON))
 wall_left = geompy.MakePlaneThreePnt(p39, p44, p39_low, 500)
 #geompy.addToStudy(wall_left, "wall_left")
 
@@ -201,15 +201,12 @@ zzlow = 4.46
 
 # draw intake sidechannel (can be inlet when pumping and outlet when turbining!)
 intake_sidechannel = geompy.MakeSketcherOnPlane("Sketcher:F "+str(xx40)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzhigh)+" :TT "+str(xx43)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzlow)+" :TT "+str(xx40)+" "+str(zzhigh)+" :WF", wall_left)
-geompy.addToStudyInFather(all3D, intake_sidechannel, "outlet_sidechannel")
 
 # extrusion of the side channel: first determine the vector perpendicular on the left wall
 perp_leftwall = geompy.MakeVector(geompy.MakeVertex(x_DV_extr+4.3, y22-0.6, 0), geompy.MakeVertex(x_DV_extr, y22-31, 0))
 box_sidechannel_L = geompy.MakePrismVecH(intake_sidechannel, perp_leftwall, 11.7)
-perp_leftwall_inverse = geompy.MakeVector(geompy.MakeVertex(x_DV_extr, y22-31, 0), geompy.MakeVertex(x_DV_extr+4.3, y22-0.6, 0))
-box_sidechannel_R = geompy.MakePrismVecH(intake_sidechannel, perp_leftwall_inverse, 200) # extend also in other direction
 
-shape3D = geompy.MakeCompound([shape3D, box_sidechannel_L, box_sidechannel_R])
+shape3D = geompy.MakeCompound([shape3D, box_sidechannel_L])
 shape3D = geompy.RemoveExtraEdges(shape3D, True)
 geompy.addToStudy(shape3D, "shape3D")
 
@@ -229,7 +226,6 @@ sidechannel_zzhigh_intersect = hor_planes(-zzhigh) # take negative depth, becaus
 sidechannel_zzlow_intersect = hor_planes(-zzlow)
 
 all3D = geompy.MakePartition([shape3D], [DV_up_intersect, DV_down_intersect, MS_NS_up_intersect, MS_NS_down_intersect, small_sluices_intersect, tap_up_intersect, sidechannel_zzhigh_intersect, sidechannel_zzlow_intersect])
-geompy.addToStudy(all3D ,"all3D")
 
 # intersect all vertically by a plane to create inlet openings
 
@@ -243,10 +239,14 @@ for y in y_list:
 
 all3D = geompy.MakePartition([all3D], intersect_list)
 all3D = geompy.RemoveExtraEdges(all3D, True)
-geompy.addToStudy(all3D ,"all3D")
 
 # intersect vertically by a plane to extend the vertical walls of the side channel
 
+sidechannel_left_intersect = geompy.MakePlane(p40, geompy.MakeVector(p40, p43), 400)
+sidechannel_right_intersect = geompy.MakePlane(p43, geompy.MakeVector(p40, p43), 400)
+all3D = geompy.MakePartition([all3D], [sidechannel_right_intersect, sidechannel_left_intersect])
+all3D = geompy.RemoveExtraEdges(all3D, True)
+geompy.addToStudy(all3D ,"all3D")
 
 #check if the generated shape is valid
 print("Checking whether the created shape is valid")
@@ -295,6 +295,8 @@ outlet_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group
 geompy.UnionList(outlet_DV, [outlet_DV_RB_1, outlet_DV_RB_2, outlet_DV_RB_3, outlet_DV_RB_4, outlet_DV_RB_5, outlet_DV_RB_6, outlet_DV_RB_7, outlet_DV_RB_8, outlet_DV_LB_1, outlet_DV_LB_2, outlet_DV_LB_3, outlet_DV_LB_4]) # put in the group: 2 parts of the outlet
 geompy.addToStudyInFather(all3D, outlet_DV, "outlet_DV")
 
+geompy.addToStudyInFather(all3D, intake_sidechannel, "outlet_sidechannel")
+# Question: is this outlet located on the right place? Better at the outer part of the geometry? Maybe simply by translate => create new face on other location?
 
 # inlet face: upstream part
 inlet_upstream = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
@@ -302,12 +304,9 @@ geompy.UnionList(inlet_upstream, geompy.GetShapesOnPlaneWithLocation(all3D, geom
 geompy.addToStudyInFather(all3D, inlet_upstream, "inlet_upstream")
 
 
-
-
 """
 NOG TE DOEN:
-- sidechannel vroeger zetten (voor horizontaal en verticaal doorsnijden) + wanden doortrekken door study site
-- outlets afbakenen voor horizontaal doorsnijden? Blijven ze dan een geheel na doorsnijden?
+- add tap
 - leftwall en top aanduiden
 - meshen!
 
