@@ -76,7 +76,8 @@ y20 = y19 - 3.60
 y21 = y20 - 2*4.90
 y22 = y21 - 0.60
 # tap
-y13 = y16 + 11
+y13 = y12 - 3.10
+y13_L = y13 - 4.40
 
 # z (depth) coordinates of the intersecting horizontal planes
 z_DV_up = -2.13
@@ -233,7 +234,7 @@ def vert_planes(yco):
 	plane = geompy.MakePlane(geompy.MakeVertex(0, yco, 0), Vy, 1000)
 	return plane
 intersect_list = []
-y_list = [y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y14, y15, y16, y17, y18, y19, y20, y21, y22]
+y_list = [y1, y2, y3, y4, y5, y6, y7, y8, y9, y10, y11, y12, y13, y13_L, y14, y15, y16, y17, y18, y19, y20, y21, y22]
 for y in y_list:
 	intersect_list.append(vert_planes(y))
 
@@ -265,7 +266,8 @@ outlet_NS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y1-0.5, z_M
 outlet_NS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_up-0.5))
 outlet_NS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y5-0.5, z_MS_NS_down+0.5))
 outlets_NS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-geompy.UnionList(outlets_NS, [outlet_NS_RB_1, outlet_NS_RB_2, outlet_NS_LB_1, outlet_NS_LB_2])
+list_NS = [outlet_NS_RB_1, outlet_NS_RB_2, outlet_NS_LB_1, outlet_NS_LB_2]
+geompy.UnionList(outlets_NS, list_NS)
 geompy.addToStudyInFather(all3D, outlets_NS, "outlets_NS")
 
 outlet_MS_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_MS_NS_up-0.5))
@@ -273,8 +275,17 @@ outlet_MS_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y7-0.5, z_M
 outlet_MS_LB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_up-0.5))
 outlet_MS_LB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y11-0.5, z_MS_NS_down+0.5))
 outlets_MS = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-geompy.UnionList(outlets_MS, [outlet_MS_RB_1, outlet_MS_RB_2, outlet_MS_LB_1, outlet_MS_LB_2])
+list_MS = [outlet_MS_RB_1, outlet_MS_RB_2, outlet_MS_LB_1, outlet_MS_LB_2]
+geompy.UnionList(outlets_MS, list_MS)
 geompy.addToStudyInFather(all3D, outlets_MS, "outlets_MS")
+
+outlet_tap_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y13-0.5, z_tap_up-0.05))
+outlet_tap_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y13-0.5, z_MS_NS_up-0.05))
+outlet_tap_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(0, y13-0.5, z_tap_down+0.05))
+outlet_tap = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+list_tap = [outlet_tap_1, outlet_tap_2, outlet_tap_3]
+geompy.UnionList(outlet_tap, list_tap)
+geompy.addToStudyInFather(all3D, outlet_tap, "outlet_tap")
 
 outlet_DV_RB_1 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, z_DV_up-0.5))
 outlet_DV_RB_2 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y15-0.5, -zzlow+0.05))
@@ -292,28 +303,35 @@ outlet_DV_LB_3 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20
 outlet_DV_LB_4 = geompy.GetFaceNearPoint(all3D, geompy.MakeVertex(x_DV_extr, y20-0.5, z_DV_down+0.5))
 
 outlet_DV = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"]) # create a group on all3D which will contain faces
-geompy.UnionList(outlet_DV, [outlet_DV_RB_1, outlet_DV_RB_2, outlet_DV_RB_3, outlet_DV_RB_4, outlet_DV_RB_5, outlet_DV_RB_6, outlet_DV_RB_7, outlet_DV_RB_8, outlet_DV_LB_1, outlet_DV_LB_2, outlet_DV_LB_3, outlet_DV_LB_4]) # put in the group: 2 parts of the outlet
+list_DV = [outlet_DV_RB_1, outlet_DV_RB_2, outlet_DV_RB_3, outlet_DV_RB_4, outlet_DV_RB_5, outlet_DV_RB_6, outlet_DV_RB_7, outlet_DV_RB_8, outlet_DV_LB_1, outlet_DV_LB_2, outlet_DV_LB_3, outlet_DV_LB_4]
+geompy.UnionList(outlet_DV, list_DV) # put in the group: 2 parts of the outlet
 geompy.addToStudyInFather(all3D, outlet_DV, "outlet_DV")
 
-geompy.addToStudyInFather(all3D, intake_sidechannel, "outlet_sidechannel")
-# Question: is this outlet located on the right place? Better at the outer part of the geometry? Maybe simply by translate => create new face on other location?
+outlet_sidechannel = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+list_sidechannel = geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], perp_leftwall, geompy.MakeVertex(x_DV_extr+44, y_LB - 10, 0), GEOM.ST_OUT)
+geompy.UnionList(outlet_sidechannel, list_sidechannel)
+geompy.addToStudyInFather(all3D, outlet_sidechannel, "outlet_sidechannel")
 
 # inlet face: upstream part
 inlet_upstream = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-geompy.UnionList(inlet_upstream, geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vx, geompy.MakeVertex(x_DV_extr+218.875, -0.05, -0.05), GEOM.ST_ON))
+list_upstream = geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vx, geompy.MakeVertex(x_DV_extr+218.875, -0.05, -0.05), GEOM.ST_ON)
+geompy.UnionList(inlet_upstream, list_upstream)
 geompy.addToStudyInFather(all3D, inlet_upstream, "inlet_upstream")
 
+# top
+top_wall = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+list_top = geompy.GetShapesOnPlaneWithLocation(all3D, geompy.ShapeType["FACE"], Vz, p0, GEOM.ST_ON)
+geompy.UnionList(top_wall, list_top)
+geompy.addToStudyInFather(all3D, top_wall, "top_wall")
 
-"""
-NOG TE DOEN:
-- add tap
-- leftwall en top aanduiden
-- meshen!
+# rest of walls
+walls = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
+geompy.UnionIDs(walls, geompy.GetFreeFacesIDs(all3D))
+list_removals = list_NS + list_MS + list_DV + list_tap + list_upstream + list_top + list_sidechannel
+geompy.DifferenceList(walls, list_removals)
+geompy.addToStudyInFather(all3D, walls, "walls")
 
-"""
-
-"""
-wall_left_F = geompy.CreateGroup(all3D, geompy.ShapeType["FACE"])
-geompy.UnionList(wall_left_F, geompy.GetSharedShapesMulti([all3D, wall_left], geompy.ShapeType["FACE"]))
-geompy.addToStudy(wall_left_F, "wall_left_F")
-"""
+####------####
+#### Mesh ####
+####------####
+print "\nMESH TIME !"
